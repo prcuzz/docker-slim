@@ -226,16 +226,17 @@ func (p *CustomProbe) Start() {
 			})
 	}
 
+	// 开启一个协程
 	go func() {
 		//TODO: need to do a better job figuring out if the target app is ready to accept connections
 		time.Sleep(9 * time.Second) //base start wait time
-		if p.StartWait > 0 {
+		if p.StartWait > 0 {		// 如果要等一段时间再开始探测
 			if p.PrintState {
 				p.xc.Out.State("http.probe.start.wait", ovars{"time": p.StartWait})
 			}
 
 			//additional wait time
-			time.Sleep(time.Duration(p.StartWait) * time.Second)
+			time.Sleep(time.Duration(p.StartWait) * time.Second) //就sleep一下
 
 			if p.PrintState {
 				p.xc.Out.State("http.probe.start.wait.done")
@@ -257,7 +258,7 @@ func (p *CustomProbe) Start() {
 			return -1
 		}
 
-		httpIdx := findIdx(p.Ports, defaultHTTPPortStr)
+		httpIdx := findIdx(p.Ports, defaultHTTPPortStr)		// 找到要探测的HTTP端口？
 		httpsIdx := findIdx(p.Ports, defaultHTTPSPortStr)
 		if httpIdx != -1 && httpsIdx != -1 && httpsIdx < httpIdx {
 			//want to probe http first

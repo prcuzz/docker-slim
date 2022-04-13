@@ -1143,7 +1143,7 @@ func OnCommand(
 		}
 
 		probe.Start()	// zzc 开始HTTP探测
-		continueAfter.ContinueChan = probe.DoneChan()
+		continueAfter.ContinueChan = probe.DoneChan()	// 给continueAfter.ContinueChan赋值为probe.doneChan，而probe.doneChan是探测动作完成时同步用的channel
 	}
 
 	continueAfterMsg := "provide the expected input to allow the container inspector to continue its execution"
