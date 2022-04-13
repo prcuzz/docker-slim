@@ -217,6 +217,7 @@ func NewCustomProbe(
 }
 
 // Start starts the HTTP probe instance execution
+// zzc 开始执行HTTP探测实例执行
 func (p *CustomProbe) Start() {
 	if p.PrintState {
 		p.xc.Out.State("http.probe.starting",

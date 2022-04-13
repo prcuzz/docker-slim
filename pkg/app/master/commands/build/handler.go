@@ -970,7 +970,7 @@ func OnCommand(
 		}
 	}
 
-	xc.Out.State("container.inspection.start")
+	xc.Out.State("container.inspection.start")	// 容器检查开始
 
 	hasClassicLinks := true
 	if targetComposeSvc != "" ||
@@ -1079,7 +1079,7 @@ func OnCommand(
 		}
 	}
 
-	xc.AddCleanupHandler(inspectorCleanup)
+	xc.AddCleanupHandler(inspectorCleanup)		// 这是个处理后事的函数？
 
 	xc.Out.Info("container",
 		ovars{
@@ -1092,7 +1092,7 @@ func OnCommand(
 
 	logger.Info("watching container monitor...")
 
-	if hasContinueAfterMode(continueAfter.Mode, config.CAMProbe) {
+	if hasContinueAfterMode(continueAfter.Mode, config.CAMProbe) {	// 判断要不要做http探测
 		doHTTPProbe = true
 	}
 
@@ -1142,7 +1142,7 @@ func OnCommand(
 			xc.Exit(exitCode)
 		}
 
-		probe.Start()	// zzc 开始探测
+		probe.Start()	// zzc 开始HTTP探测
 		continueAfter.ContinueChan = probe.DoneChan()
 	}
 
@@ -1217,7 +1217,7 @@ func OnCommand(
 				time.Sleep(1 * time.Second)
 			}
 		case config.CAMEnter:
-			xc.Out.Prompt("USER INPUT REQUIRED, PRESS <ENTER> WHEN YOU ARE DONE USING THE CONTAINER")
+			xc.Out.Prompt("USER INPUT REQUIRED, PRESS <ENTER> WHEN YOU ARE DONE USING THE CONTAINER")	// 需要用户输入回车来结束容器？
 			creader := bufio.NewReader(os.Stdin)
 			_, _, _ = creader.ReadLine()
 		case config.CAMExec:
@@ -1301,7 +1301,7 @@ func OnCommand(
 		}
 	}
 
-	xc.Out.State("container.inspection.finishing")
+	xc.Out.State("container.inspection.finishing")	// 容器检查结束
 
 	containerInspector.FinishMonitoring()
 
@@ -1335,7 +1335,7 @@ func OnCommand(
 		xc.Out.State("container.dependencies.shutdown.done")
 	}
 
-	xc.Out.State("container.inspection.artifact.processing")
+	xc.Out.State("container.inspection.artifact.processing")	// zzc 处理要保留下来的文件内容？
 
 	if !containerInspector.HasCollectedData() {
 		imageInspector.ShowFatImageDockerInstructions()
