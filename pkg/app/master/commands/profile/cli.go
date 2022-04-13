@@ -351,6 +351,7 @@ var CLI = &cli.Command{
 			commandReport = ""
 		}
 
+		// zzc 在这之前应该是在处理参数，处理完了调用OnCommand正式开始执行命令
 		OnCommand(
 			xc,
 			gcvalues,

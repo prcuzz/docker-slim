@@ -22,6 +22,7 @@ const appName = commands.AppName
 type ovars = app.OutVars
 
 // OnCommand implements the 'lint' docker-slim command
+// zzc OnCommand µœ÷ 'lint' docker-slim√¸¡Ó
 func OnCommand(
 	xc *app.ExecutionContext,
 	gparams *commands.GenericParams,

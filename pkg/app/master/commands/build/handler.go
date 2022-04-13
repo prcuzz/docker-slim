@@ -216,7 +216,7 @@ func OnCommand(
 
 	logger.Debugf("customImageTag='%s', additionalTags=%#v", customImageTag, additionalTags)
 
-	client, err := dockerclient.New(gparams.ClientConfig)
+	client, err := dockerclient.New(gparams.ClientConfig)	// zzc 开一个新的Docker Client？
 	if err == dockerclient.ErrNoDockerInfo {
 		exitMsg := "missing Docker connection info"
 		if gparams.InContainer && gparams.IsDSImage {
@@ -280,6 +280,7 @@ func OnCommand(
 				"message": "building basic image",
 			})
 
+		// zzc 没看懂这一段在干嘛
 		//create a fat image name:
 		//* use the explicit fat image tag if provided
 		//* or create one based on the user provided (slim image) custom tag if it's available
@@ -657,11 +658,11 @@ func OnCommand(
 		xc.Exit(exitCode)
 	}
 
-	imageInspector, err := image.NewInspector(client, targetRef)
+	imageInspector, err := image.NewInspector(client, targetRef)	// zzc 这inspector到底是个啥？
 	xc.FailOn(err)
 
-	if imageInspector.NoImage() {
-		if doPull {
+	if imageInspector.NoImage() {	// zzc如果找不到image
+		if doPull {					// zzc pull一个
 			xc.Out.Info("target.image",
 				ovars{
 					"status":  "image.not.found",
@@ -671,7 +672,7 @@ func OnCommand(
 
 			err := imageInspector.Pull(doShowPullLogs, dockerConfigPath, registryAccount, registrySecret)
 			xc.FailOn(err)
-		} else {
+		} else {					// zzc 报错，退出
 			xc.Out.Info("target.image.error",
 				ovars{
 					"status":  "image.not.found",
@@ -700,7 +701,7 @@ func OnCommand(
 	err = imageInspector.Inspect()
 	xc.FailOn(err)
 
-	localVolumePath, artifactLocation, statePath, stateKey := fsutil.PrepareImageStateDirs(gparams.StatePath, imageInspector.ImageInfo.ID)
+	localVolumePath, artifactLocation, statePath, stateKey := fsutil.PrepareImageStateDirs(gparams.StatePath, imageInspector.ImageInfo.ID)	// zzc 似乎是对文件系统的一些操作？
 	imageInspector.ArtifactLocation = artifactLocation
 	logger.Debugf("localVolumePath=%v, artifactLocation=%v, statePath=%v, stateKey=%v", localVolumePath, artifactLocation, statePath, stateKey)
 
@@ -709,7 +710,7 @@ func OnCommand(
 			"id":         imageInspector.ImageInfo.ID,
 			"size.bytes": imageInspector.ImageInfo.VirtualSize,
 			"size.human": humanize.Bytes(uint64(imageInspector.ImageInfo.VirtualSize)),
-		})
+		})		// zzc 打印image相关信息
 
 	if imageInspector.ImageInfo.Config != nil &&
 		len(imageInspector.ImageInfo.Config.Labels) > 0 {
@@ -735,7 +736,7 @@ func OnCommand(
 	}
 
 	logger.Info("processing 'fat' image info...")
-	err = imageInspector.ProcessCollectedData()
+	err = imageInspector.ProcessCollectedData()		// zzc 收集image信息？
 	xc.FailOn(err)
 
 	if imageInspector.DockerfileInfo != nil {
@@ -756,7 +757,7 @@ func OnCommand(
 						"index": idx,
 						"name":  layerInfo.FullName,
 						"id":    layerInfo.ID,
-					})
+					})	// zzc 这打印了个什么玩意？
 			}
 		}
 
@@ -764,7 +765,7 @@ func OnCommand(
 			xc.Out.Info("image.exposed_ports",
 				ovars{
 					"list": strings.Join(imageInspector.DockerfileInfo.ExposedPorts, ","),
-				})
+				})		// zzc 打印端口信息
 		}
 
 		if !rtaOnbuildBaseImage && imageInspector.DockerfileInfo.HasOnbuild {
@@ -786,9 +787,10 @@ func OnCommand(
 		}
 	}
 
-	xc.Out.State("image.inspection.done")
+	xc.Out.State("image.inspection.done")	// zzc 镜像检查完成
 
 	//validate links (check if target container exists, ignore&log if not)
+	// zzc 验证链接（检查目标容器是否存在，如果不存在则忽略并记录）
 	svcLinkMap := map[string]struct{}{}
 	for _, linkInfo := range links {
 		svcLinkMap[linkInfo] = struct{}{}
@@ -1038,7 +1040,7 @@ func OnCommand(
 		prefix)
 	xc.FailOn(err)
 
-	if len(containerInspector.FatContainerCmd) == 0 {
+	if len(containerInspector.FatContainerCmd) == 0 {	// zzc 如果没有cmd
 		xc.Out.Info("target.image.error",
 			ovars{
 				"status":  "no.entrypoint.cmd",
@@ -1054,7 +1056,7 @@ func OnCommand(
 	}
 
 	logger.Info("starting instrumented 'fat' container...")
-	err = containerInspector.RunContainer()
+	err = containerInspector.RunContainer()		// zzc 启动容器？
 	if err != nil && containerInspector.DoShowContainerLogs {
 		containerInspector.ShowContainerLogs()
 	}
@@ -1086,7 +1088,7 @@ func OnCommand(
 			"target.port.list": containerInspector.ContainerPortList,
 			"target.port.info": containerInspector.ContainerPortsInfo,
 			"message":          "YOU CAN USE THESE PORTS TO INTERACT WITH THE CONTAINER",
-		})
+		})		// zzc 打印容器信息
 
 	logger.Info("watching container monitor...")
 
@@ -1095,7 +1097,7 @@ func OnCommand(
 	}
 
 	var probe *http.CustomProbe
-	if doHTTPProbe {
+	if doHTTPProbe {		// zzc 如果要做http探测
 		var err error
 		probe, err = http.NewCustomProbe(
 			xc,
@@ -1140,7 +1142,7 @@ func OnCommand(
 			xc.Exit(exitCode)
 		}
 
-		probe.Start()
+		probe.Start()	// zzc 开始探测
 		continueAfter.ContinueChan = probe.DoneChan()
 	}
 
@@ -1162,7 +1164,7 @@ func OnCommand(
 	execFail := false
 
 	modes := strings.Split(continueAfter.Mode, "&")
-	for _, mode := range modes {
+	for _, mode := range modes {						// zzc 处理continue.after的各种mode（下面的CAM指的是continue after mode？）
 		//should work for the most parts except
 		//when probe and signal are combined
 		//because both need channels (TODO: fix)
@@ -1304,7 +1306,7 @@ func OnCommand(
 	containerInspector.FinishMonitoring()
 
 	logger.Info("shutting down 'fat' container...")
-	err = containerInspector.ShutdownContainer()
+	err = containerInspector.ShutdownContainer()	// zzc 关闭容器？
 	errutil.WarnOn(err)
 
 	if execFail {
@@ -1362,17 +1364,17 @@ func OnCommand(
 		customImageTag = imageInspector.SlimImageRepo
 	}
 
-	xc.Out.State("container.inspection.done")
+	xc.Out.State("container.inspection.done")	// zzc 容器检查完成；到这里为止好像和profile指令差不多啊？
 	xc.Out.State("building",
 		ovars{
 			"message": "building optimized image",
-		})
+		})	// zzc 从这里开始构建优化的镜像？
 
 	builder, err := builder.NewImageBuilder(client,
 		customImageTag,
 		additionalTags,
 		imageInspector.ImageInfo,
-		artifactLocation,
+		artifactLocation,			// zzc artifact应该是构建新容器要用到的一些文件？
 		doShowBuildLogs,
 		imageOverrideSelectors,
 		overrides,
@@ -1431,7 +1433,7 @@ func OnCommand(
 	}
 
 	/////////////////////////////
-	newImageInspector, err := image.NewInspector(client, builder.RepoName)
+	newImageInspector, err := image.NewInspector(client, builder.RepoName)	// 下面应该是优化完的容器的信息输出以及一些收尾工作？
 	xc.FailOn(err)
 
 	if newImageInspector.NoImage() {

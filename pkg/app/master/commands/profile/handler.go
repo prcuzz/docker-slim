@@ -97,7 +97,7 @@ func OnCommand(
 	logger := log.WithFields(log.Fields{"app": appName, "command": cmdName})
 	prefix := fmt.Sprintf("cmd=%s", cmdName)
 
-	viChan := version.CheckAsync(gparams.CheckVersion, gparams.InContainer, gparams.IsDSImage)
+	viChan := version.CheckAsync(gparams.CheckVersion, gparams.InContainer, gparams.IsDSImage)	// 每个command执行前都要检查一下版本?
 
 	cmdReport := report.NewProfileCommand(gparams.ReportLocation, gparams.InContainer)
 	cmdReport.State = command.StateStarted
@@ -107,7 +107,7 @@ func OnCommand(
 	xc.Out.Info("params",
 		ovars{
 			"target": targetRef,
-		})
+		})	// 打印镜像名称
 
 	client, err := dockerclient.New(gparams.ClientConfig)
 	if err == dockerclient.ErrNoDockerInfo {
@@ -133,7 +133,7 @@ func OnCommand(
 	errutil.FailOn(err)
 
 	if gparams.Debug {
-		version.Print(prefix, logger, client, false, gparams.InContainer, gparams.IsDSImage)
+		version.Print(prefix, logger, client, false, gparams.InContainer, gparams.IsDSImage)	// zzc 打印版本？
 	}
 
 	if overrides.Network == "host" && runtime.GOOS == "darwin" {
@@ -182,7 +182,7 @@ func OnCommand(
 					"message": "trying to pull target image",
 				})
 
-			err := imageInspector.Pull(doShowPullLogs, dockerConfigPath, registryAccount, registrySecret)
+			err := imageInspector.Pull(doShowPullLogs, dockerConfigPath, registryAccount, registrySecret)	// zzc 没有目标镜像就pull一个下来
 			errutil.FailOn(err)
 		} else {
 			xc.Out.Info("target.image.error",
@@ -216,7 +216,7 @@ func OnCommand(
 			"id":         imageInspector.ImageInfo.ID,
 			"size.bytes": imageInspector.ImageInfo.VirtualSize,
 			"size.human": humanize.Bytes(uint64(imageInspector.ImageInfo.VirtualSize)),
-		})
+		})	// 打印镜像id和大小
 
 	logger.Info("processing 'fat' image info...")
 	err = imageInspector.ProcessCollectedData()
@@ -293,7 +293,7 @@ func OnCommand(
 		prefix)
 	errutil.FailOn(err)
 
-	if len(containerInspector.FatContainerCmd) == 0 {
+	if len(containerInspector.FatContainerCmd) == 0 {	// zzc 如果没有入口指令
 		xc.Out.Info("target.image.error",
 			ovars{
 				"status":  "no.entrypoint.cmd",
@@ -307,7 +307,7 @@ func OnCommand(
 	}
 
 	logger.Info("starting instrumented 'fat' container...")
-	err = containerInspector.RunContainer()
+	err = containerInspector.RunContainer()	// 运行容器？
 	errutil.FailOn(err)
 
 	xc.Out.Info("container",
@@ -317,7 +317,7 @@ func OnCommand(
 			"target.port.list": containerInspector.ContainerPortList,
 			"target.port.info": containerInspector.ContainerPortsInfo,
 			"message":          "YOU CAN USE THESE PORTS TO INTERACT WITH THE CONTAINER",
-		})
+		})	// 打印容器名字、id、端口信息
 
 	logger.Info("watching container monitor...")
 
@@ -350,22 +350,22 @@ func OnCommand(
 				ovars{
 					"error":   "NO EXPOSED PORTS",
 					"message": "expose your service port with --expose or disable HTTP probing with --http-probe=false if your containerized application doesnt expose any network services",
-				})
+				})	// zzc 如果没有暴露的端口就报错
 
 			logger.Info("shutting down 'fat' container...")
 			containerInspector.FinishMonitoring()
-			_ = containerInspector.ShutdownContainer()
+			_ = containerInspector.ShutdownContainer()	// zzc 如果没有暴露的端口就关闭容器
 
 			xc.Out.State("exited", ovars{"exit.code": -1})
 			xc.Exit(-1)
 		}
 
-		probe.Start()
+		probe.Start()	// zzc 开始 http 探测？
 		continueAfter.ContinueChan = probe.DoneChan()
 	}
 
 	continueAfterMsg := "provide the expected input to allow the container inspector to continue its execution"
-	switch continueAfter.Mode {
+	switch continueAfter.Mode {		
 	case config.CAMTimeout:
 		continueAfterMsg = "no input required, execution will resume after the timeout"
 	case config.CAMProbe:
@@ -378,7 +378,7 @@ func OnCommand(
 			"message": continueAfterMsg,
 		})
 
-	switch continueAfter.Mode {
+	switch continueAfter.Mode {		// zzc --continue-after 参数用的
 	case config.CAMEnter:
 		xc.Out.Prompt("USER INPUT REQUIRED, PRESS <ENTER> WHEN YOU ARE DONE USING THE CONTAINER")
 		creader := bufio.NewReader(os.Stdin)
@@ -399,7 +399,7 @@ func OnCommand(
 			})
 	case config.CAMProbe:
 		xc.Out.Prompt("waiting for the HTTP probe to finish")
-		<-continueAfter.ContinueChan
+		<-continueAfter.ContinueChan	// zzc 等待probe完成
 		xc.Out.Info("event",
 			ovars{
 				"message": "HTTP probe is done",
@@ -413,7 +413,7 @@ func OnCommand(
 	containerInspector.FinishMonitoring()
 
 	logger.Info("shutting down 'fat' container...")
-	err = containerInspector.ShutdownContainer()
+	err = containerInspector.ShutdownContainer()	// zzc 关闭容器？
 	errutil.WarnOn(err)
 
 	xc.Out.State("container.inspection.artifact.processing")
@@ -480,7 +480,7 @@ func OnCommand(
 	if cmdReport.Save() {
 		xc.Out.Info("report",
 			ovars{
-				"file": cmdReport.ReportLocation(),
+				"file": cmdReport.ReportLocation(),		// zzc 打印report的路径
 			})
 	}
 }

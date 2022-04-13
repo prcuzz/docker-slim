@@ -89,6 +89,8 @@ func (c *Command) FullName() string {
 }
 
 // Run invokes the command given the context, parses ctx.Args() to generate command-specific flags
+// Run调用给定上下文的命令，解析ctx.Args()以生成特定于命令的标志
+// [zzc] 处理命令的函数
 func (c *Command) Run(ctx *Context) (err error) {
 	if len(c.Subcommands) > 0 {
 		return c.startApp(ctx)
@@ -214,6 +216,7 @@ func (c *Command) HasName(name string) bool {
 	return false
 }
 
+// [zzc] docker-slim 真正执行的地方？
 func (c *Command) startApp(ctx *Context) error {
 	app := &App{
 		Metadata: ctx.App.Metadata,

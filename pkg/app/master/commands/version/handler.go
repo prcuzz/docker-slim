@@ -19,6 +19,7 @@ import (
 type ovars = app.OutVars
 
 // OnCommand implements the 'version' docker-slim command
+// zzc OnCommand µœ÷¡À'version' docker-slim√¸¡Ó
 func OnCommand(
 	xc *app.ExecutionContext,
 	doDebug, inContainer, isDSImage bool,
