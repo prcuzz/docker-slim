@@ -344,17 +344,17 @@ func NewInspector(
 
 // RunContainer starts the container inspector instance execution
 func (i *Inspector) RunContainer() error {
-	artifactsPath := filepath.Join(i.LocalVolumePath, ArtifactsDir)
+	artifactsPath := filepath.Join(i.LocalVolumePath, ArtifactsDir)	// 准备artifacts路径
 	sensorPath := filepath.Join(fsutil.ExeDir(), SensorBinLocal)
 
-	if runtime.GOOS == "darwin" {
+	if runtime.GOOS == "darwin" {		// 查看目标操作系统
 		stateSensorPath := filepath.Join(i.StatePath, SensorBinLocal)
 		if fsutil.Exists(stateSensorPath) {
 			sensorPath = stateSensorPath
 		}
 	}
 
-	if !fsutil.Exists(sensorPath) {
+	if !fsutil.Exists(sensorPath) {		// 检查下sensor二进制存不存在
 		if i.PrintState {
 			i.xc.Out.Info("sensor.error",
 				ovars{
@@ -387,7 +387,7 @@ func (i *Inspector) RunContainer() error {
 		i.logger.Errorf("RunContainer: error getting sensor (%s) info => %#v", sensorPath, err)
 	}
 
-	allMountsMap := map[string]dockerapi.HostMount{}
+	allMountsMap := map[string]dockerapi.HostMount{}	// 这个变量是干啥用的？
 
 	//start with the base mounts (usually come from compose)
 	if len(i.BaseMounts) > 0 {
@@ -733,7 +733,7 @@ func (i *Inspector) RunContainer() error {
 		i.logger.Debugf("RunContainer: i.APIClient.AddEventListener error => %v", err)
 		return err
 	}
-	go func() {
+	go func() {		// 这里起了一个不断循环、接收docker event的协程？
 		for {
 			select {
 			case devent := <-i.dockerEventCh:

@@ -52,10 +52,10 @@ func Run(
 		return nil, err
 	}
 
-	if rtaSourcePT {
+	if rtaSourcePT {	// 开始跟踪程序？
 		log.Debug("ptrace.Run - tracing target app")
 		app.Report.Enabled = true
-		go app.process()
+ 		go app.process()
 		go app.trace()
 	} else {
 		log.Debug("ptrace.Run - not tracing target app...")
@@ -220,14 +220,14 @@ func (app *App) trace() {
 	}
 
 	app.StateCh <- AppStarted
-	app.collect()
+	app.collect()		// 收集？收集用到的系统调用和文件吗？
 }
 
 func (app *App) processSyscallActivity(e *syscallEvent) {
 	app.syscallActivity[e.callNum]++
 }
 
-func (app *App) processFileActivity(e *syscallEvent) {
+func (app *App) processFileActivity(e *syscallEvent) {					// 这个函数看着像是在统计哪些文件被用到了……
 	if e.pathParam != "" {
 		p, found := syscallProcessors[int(e.callNum)]
 		if !found {
@@ -246,9 +246,9 @@ func (app *App) processFileActivity(e *syscallEvent) {
 				!strings.HasPrefix(e.pathParam, "/sys/") &&
 				!strings.HasPrefix(e.pathParam, "/dev/") {
 				if fsa, ok := app.fsActivity[e.pathParam]; ok {
-					fsa.OpsAll++
-					fsa.Pids[e.pid] = struct{}{}
-					fsa.Syscalls[int(e.callNum)] = struct{}{}
+					fsa.OpsAll++								// 这个文件被操作的总数++
+					fsa.Pids[e.pid] = struct{}{}				// 记录本次操作的pid
+					fsa.Syscalls[int(e.callNum)] = struct{}{}	// 记录本次操作的syscall
 
 					if processor, found := syscallProcessors[int(e.callNum)]; found {
 						switch processor.SyscallType() {
@@ -302,8 +302,8 @@ done:
 			app.Report.SyscallCount++
 			log.Debugf("ptrace.App.process: event ==> {pid=%v cn=%d}", e.pid, e.callNum)
 
-			app.processSyscallActivity(&e)
-			app.processFileActivity(&e)
+			app.processSyscallActivity(&e)	// 统计每个syscall被调用的次数？
+			app.processFileActivity(&e)		// 统计每个文件被调用的情况？
 		}
 	}
 
@@ -530,7 +530,7 @@ func (app *App) collect() {
 
 		if doSyscall {
 			log.Tracef("ptrace.App.collect: trace syscall (pid=%v sig=%v)", callPid, callSig)
-			err := syscall.PtraceSyscall(callPid, callSig)
+			err := syscall.PtraceSyscall(callPid, callSig)		// 告诉Go继续执行正在被跟踪的程序，但是当程序进入或退出系统调用时停止执行
 			if err != nil {
 				log.Errorf("ptrace.App.collect: trace syscall pid=%v sig=%v error - %v (errno=%d)", callPid, callSig, err, err.(syscall.Errno))
 				app.ErrorCh <- errors.SE("ptrace.App.collect.ptsyscall", "call.error", err)
@@ -641,7 +641,7 @@ func (app *App) collect() {
 			}
 
 			if !cstate.expectReturn {
-				genEvent, err := onSyscall(wpid, cstate)
+				genEvent, err := onSyscall(wpid, cstate)	// 捕获到一个syscall？
 				if err != nil {
 					log.Debugf("ptrace.App.collect[%d/%d]: wpid=%v onSyscall error - %v",
 						app.cmd.Process.Pid, app.pgid, wpid, err)
@@ -766,17 +766,17 @@ func (app *App) collect() {
 
 func onSyscall(pid int, cstate *syscallState) (bool, error) {
 	var regs syscall.PtraceRegs
-	if err := syscall.PtraceGetRegs(pid, &regs); err != nil {
+	if err := syscall.PtraceGetRegs(pid, &regs); err != nil {	// 获取寄存器状态
 		return false, err
 	}
 
-	cstate.callNum = system.CallNumber(regs)
+	cstate.callNum = system.CallNumber(regs)		// 获取系统调用号
 	cstate.expectReturn = true
 	cstate.gotCallNum = true
 
 	if processor, found := syscallProcessors[int(cstate.callNum)]; found && processor != nil {
 		processor.OnCall(pid, regs, cstate)
-		genEvent := processor.EventOnCall()
+		genEvent := processor.EventOnCall()	// 操作文件的syscall返回false，exec的syscall返回true
 		return genEvent, nil
 	}
 

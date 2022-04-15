@@ -234,9 +234,9 @@ func saveResults(
 	artifactDirName := defaultArtifactDirName
 	artifactStore := newArtifactStore(artifactDirName, origPaths, fileNames, fanMonReport, ptMonReport, peReport, cmd)
 	artifactStore.prepareArtifacts()
-	artifactStore.saveArtifacts()
+	artifactStore.saveArtifacts()	// 保存Artifacts？
 	//artifactStore.archiveArtifacts() //alternative way to xfer artifacts
-	artifactStore.saveReport()
+	artifactStore.saveReport()		// 保存报告？
 }
 
 type artifactStore struct {
@@ -850,7 +850,7 @@ func (p *artifactStore) saveCertsData() {
 	}
 }
 
-func (p *artifactStore) saveArtifacts() {
+func (p *artifactStore) saveArtifacts() {		// 这里是要把监控到的文件都保存下来吗？
 	var includePaths map[string]bool
 	var newPerms map[string]*fsutil.AccessInfo
 
@@ -1685,7 +1685,7 @@ func (p *artifactStore) saveReport() {
 	err = encoder.Encode(creport)
 	errutil.FailOn(err)
 
-	err = ioutil.WriteFile(reportFilePath, reportData.Bytes(), 0644)
+	err = ioutil.WriteFile(reportFilePath, reportData.Bytes(), 0644)	// 写文件，最终保存操作
 	errutil.FailOn(err)
 }
 
