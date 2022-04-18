@@ -55,8 +55,8 @@ func Run(
 	if rtaSourcePT {	// 开始跟踪程序？
 		log.Debug("ptrace.Run - tracing target app")
 		app.Report.Enabled = true
- 		go app.process()
-		go app.trace()
+ 		go app.process()	// 用于处理信息的协程？
+		go app.trace()		// 用于跟踪的协程？
 	} else {
 		log.Debug("ptrace.Run - not tracing target app...")
 		go func() {
@@ -298,7 +298,7 @@ done:
 				}
 			}
 			break done
-		case e := <-app.eventCh:
+		case e := <-app.eventCh:			// 每次eventCh来值的时候
 			app.Report.SyscallCount++
 			log.Debugf("ptrace.App.process: event ==> {pid=%v cn=%d}", e.pid, e.callNum)
 
@@ -522,7 +522,7 @@ func (app *App) collect() {
 		var callSig int
 
 		select {
-		case <-app.StopCh:
+		case <-app.StopCh:	// 收到stop信号就结束这个函数
 			log.Debug("ptrace.App.collect: stop (exiting)")
 			return
 		default:
@@ -540,7 +540,7 @@ func (app *App) collect() {
 
 		log.Trace("ptrace.App.collect: waiting for syscall...")
 		var ws syscall.WaitStatus
-		wpid, err := syscall.Wait4(waitFor, &ws, syscall.WALL, nil)
+		wpid, err := syscall.Wait4(waitFor, &ws, syscall.WALL, nil)		// 等待子进程改变状态
 		if err != nil {
 			if err.(syscall.Errno) == syscall.ECHILD {
 				log.Debug("ptrace.App.collect: wait4 ECHILD error (ignoring)")
@@ -630,7 +630,7 @@ func (app *App) collect() {
 
 		if handleCall {
 			var cstate *syscallState
-			if _, ok := pidSyscallState[wpid]; ok {
+			if _, ok := pidSyscallState[wpid]; ok {		// 这个wpid是不是wait4捕获到的那个啊？
 				cstate = pidSyscallState[wpid]
 			} else {
 				log.Debugf("ptrace.App.collect[%d/%d]: collector loop - new pid - mainPid=%v pid=%v (prevPid=%v) - add state",

@@ -159,7 +159,7 @@ func (ref *Execution) Start() error {
 		HostConfig: hostConfig,
 	}
 
-	if ref.options != nil {
+	if ref.options != nil {		// 处理容器启动选项
 		if len(ref.options.Entrypoint) > 0 {
 			containerOptions.Config.Entrypoint = ref.options.Entrypoint
 		}
@@ -224,7 +224,7 @@ func (ref *Execution) Start() error {
 		containerOptions.Config.Tty = true
 	}
 
-	containerInfo, err := ref.APIClient.CreateContainer(containerOptions)
+	containerInfo, err := ref.APIClient.CreateContainer(containerOptions)	// 这里算是真的启动容器了？
 	if err != nil {
 		return err
 	}
@@ -256,7 +256,7 @@ func (ref *Execution) Start() error {
 
 	if ref.eventCh != nil {
 		ref.eventCh <- &ExecutionEvenInfo{
-			Event: XECreated,
+			Event: XECreated,		// 这里是代表有个新建的ExecutionEvent放到这个event管道里去吗？
 		}
 	}
 
