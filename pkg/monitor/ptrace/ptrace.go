@@ -658,7 +658,7 @@ func (app *App) collect() {
 					log.Debugf("ptrace.App.collect[%d/%d]: event.onSyscall - wpid=%v (evt=%#v)",
 						app.cmd.Process.Pid, app.pgid, wpid, evt)
 					select {
-					case app.eventCh <- evt:
+					case app.eventCh <- evt:		// 向 event channel 中传入一个事件，会在 process() 中被用到
 					default:
 						log.Debugf("ptrace.App.collect[%d/%d]: event.onSyscall - wpid=%v app.eventCh send error (evt=%#v)",
 							app.cmd.Process.Pid, app.pgid, wpid, evt)
